@@ -1,50 +1,44 @@
 package org.edupoll.app.controller;
 
-import org.edupoll.app.command.newCommand;
+import java.util.List;
+
+import org.edupoll.app.command.AddNewCinema;
 import org.edupoll.app.entity.Cinema;
 import org.edupoll.app.repository.CinemaRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Controller
 @RequestMapping("/cinema")
-@RequiredArgsConstructor
 public class CinemaController {
 
 	private final CinemaRepository cinemaRepository;
 
-	@GetMapping("/new")
-	public String showAddCinemaForm() {
-		return "cinema/new";
-
+	@GetMapping("/all")
+	public String showAddCinemaForm(Model model) {
+		List<Cinema> list =cinemaRepository.findAll();
+		model.addAttribute("cinemas", list);
+		return "cinema/all";
 	}
 
 	@PostMapping("/new")
-	public String proceedAddCinema(@ModelAttribute newCommand ncd, Model model) {
+	public String proceedAddCinema( AddNewCinema cmd) {
 		Cinema cinema = Cinema.builder().//
-				id(ncd.getNewId()).//
-				callName(ncd.getNewName()).//
-				capacity(ncd.getNewCapacity()).//
-				type(ncd.getNewType()).//
+				callName(cmd.getCallName()).//
+				capacity(cmd.getCapacity()).//
+				type(cmd.getType()).//
 				build();
 		
-		Cinema one = cinemaRepository.save(cinema);
-	
-		model.addAttribute("cinemaSave", one);
-		
-		
-		
-		
-		return "redirect:/cisnema/new";
-		
+		cinemaRepository.save(cinema);
 
-
+		return "redirect:/cinema/all";
 	}
-
 }

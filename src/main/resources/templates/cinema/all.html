@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>상영관 등록 :: 영화관관리</title>
+
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+	rel="stylesheet" />
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+@import
+	url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap')
+	;
+</style>
+<link th:href="@{/css/style.css}" rel="stylesheet" />
+
+</head>
+<body>
+
+	<div class="container py-3">
+		<div class="border-bottom">
+			<h2>상영관 관리</h2>
+		</div>
+		<div style="min-height: 400px;">
+			<div th:if="${cinemas.size() ==0}">
+				<p>※ 등록된 상영관 정보가 없습니다.</p>
+			</div>
+			<div th:unless="${#lists.isEmpty(cinemas)}">
+				<p>
+					※ <span th:text="${#lists.size(cinemas)}"></span>개의 상영관 정보가 있습니다.
+				</p>
+				<div th:each="one : ${cinemas}" class="row g-2 py-1">
+					<div class="col-5">
+						<input type="text" class="form-control form-control-sm"
+							name="callName" th:value="${one.callName}" disabled/>
+					</div>
+					<div class="col-4">
+						<select id="inputState" class="form-select form-select-sm"
+							name="type" disabled>
+							<option selected  th:text="${one.type}"></option>
+						</select>
+					</div>
+					<div class="col-2">
+						<input type="number" class="form-control form-control-sm" disabled
+							name="capacity" placeholder="상영관 수용인원" th:value="${one.capacity}"/>
+					</div>
+					<div class="col-1">
+						<button type="button" class="btn btn-sm btn-secondary form-control ">
+							<i class="bi bi-database-gear"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+
+		</div>
+		<div class="py-2 border-top">
+			<h5 class="text-success">새 상영관 등록</h5>
+			<form th:action="@{/cinema/new}" method="post" class="row g-2 "
+				autocomplete="off">
+				<div class="col-5">
+					<input type="text" class="form-control form-control-sm"
+						name="callName" placeholder="상영관 이름" />
+				</div>
+				<div class="col-4">
+					<select id="inputState" class="form-select form-select-sm"
+						name="type">
+						<option selected disabled>상영관 타입</option>
+						<option>2D</option>
+						<option>4D</option>
+					</select>
+				</div>
+				<div class="col-2">
+					<input type="number" class="form-control form-control-sm"
+						name="capacity" placeholder="상영관 수용인원" />
+				</div>
+				<div class="col-1">
+					<button type="submit" class="btn btn-sm btn-success form-control ">
+						<i class="bi bi-database-add"></i>
+					</button>
+				</div>
+			</form>
+
+		</div>
+	</div>
+
+</body>
+</html>
