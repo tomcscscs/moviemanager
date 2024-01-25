@@ -47,7 +47,8 @@
 							name="capacity" placeholder="상영관 수용인원" th:value="${one.capacity}"/>
 					</div>
 					<div class="col-1">
-						<button type="button" class="btn btn-sm btn-secondary form-control ">
+						<button type="button" th:onclick="|location.href='@{/cinema/{cinemaId}(cinemaId=${one.id})}'|" 
+							class="btn btn-sm btn-secondary form-control ">
 							<i class="bi bi-database-gear"></i>
 						</button>
 					</div>
