@@ -1,6 +1,7 @@
 package org.edupoll.app.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.edupoll.app.command.AddCinema;
 import org.edupoll.app.command.ModifyCinema;
@@ -10,6 +11,7 @@ import org.edupoll.app.repository.CinemaMapRepository;
 import org.edupoll.app.repository.CinemaRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +29,7 @@ public class CinemaController {
 	private final CinemaRepository cinemaRepository;
 	private final CinemaMapRepository cinemaMapRepository;
 
-	@GetMapping("/all")
+	@GetMapping({"","/all"})
 	public String showAddCinemaForm(Model model) {
 		List<Cinema> list = cinemaRepository.findAll();
 		model.addAttribute("cinemas", list);
@@ -49,7 +51,11 @@ public class CinemaController {
 
 	@GetMapping("/{id}")
 	public String showCinemaDetail(@PathVariable Integer id, Model model) {
-		Cinema found = cinemaRepository.findById(id).get();
+		Optional<Cinema> optional = cinemaRepository.findById(id);
+		if(optional.isEmpty()) {
+			 return "redirect:/cinema/all";
+		}
+		Cinema found = optional.get();
 		// System.out.println(found.getCinemaMap());
 		model.addAttribute("found", found);
 		return "cinema/detail";
@@ -77,46 +83,35 @@ public class CinemaController {
 
 		cinemaRepository.save(cinema);
 
-		return "redirect:/cinema/" + id;
+		return "redirect:/cinema/"+id;
 	}
-
-	@GetMapping("/delete/{id}")
-	public String proceedDelete(@PathVariable Integer id, Model model) {
-
-		/*
-		 * Cinema cinema = cinemaRepository.findById(id).get();
-		 * cinema.setCallName(dcd.getDeleteCallName());
-		 * cinema.setCapacity(dcd.getDeleteCapacity());
-		 * cinema.setType(dcd.getDeleteType());
-		 * 
-		 * if (cinema.getCinemaMap() == null) { CinemaMap cinemaMap =
-		 * CinemaMap.builder().line(dcd.getDeleteCinemaMap().getDeleteLine()) //
-		 * .seat(dcd.getDeleteCinemaMap().getDeleteSeat()).build();
-		 * cinemaMapRepository.save(cinemaMap); cinema.setCinemaMap(cinemaMap);
-		 * 
-		 * } else { CinemaMap cinemaMap = cinema.getCinemaMap();
-		 * cinemaMap.setLine(dcd.getDeleteCinemaMap().getDeleteLine());
-		 * cinemaMap.setSeat(dcd.getDeleteCinemaMap().getDeleteSeat());
-		 * cinemaMapRepository.save(cinemaMap); }
-		 */
-
-		cinemaRepository.deleteById(id);
-		cinemaMapRepository.deleteById(id);
-		
-		
-
+	
+	
+	@DeleteMapping("/{id}")
+	public String proceedDeleteCinema(@PathVariable Integer id) {
+		Optional<Cinema> optional = cinemaRepository.findById(id);
+		if(optional.isEmpty()) {
+			 return "redirect:/cinema/all";
+		}
+		Cinema cinema = optional.get();
+		cinemaRepository.delete(cinema);
+		if(cinema.getCinemaMap() != null) {
+			cinemaMapRepository.delete(cinema.getCinemaMap());
+		}
 		return "redirect:/cinema/all";
-
-		/*
-		 * Optional<Feed> optional = feedRepository.findById(cmd.getFeedId()); if
-		 * (optional.isEmpty()) { return "community/error"; }
-		 * 
-		 * Feed feed = optional.get(); boolean role =
-		 * feed.getPassword().equals(cmd.getFeedPassword()); if (!role) {
-		 * 
-		 * return "redirect:/community/delete?id=" + cmd.getFeedId(); } //
-		 * feedRepository.deleteById(cmd.getFeedId()); feedRepository.delete(feed);
-		 */
-
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

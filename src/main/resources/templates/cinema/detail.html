@@ -18,48 +18,116 @@
 </head>
 <body>
 
-	<div class="container py-2">
-
-		<form th:action="@{/cinema/{id}(id=${found.id})}" method="post">
-			<input type="hidden" name="_method" value="put" />
-
-			<div>
-				지점명 <input type="text" th:value="${found.callName}"
-					name="newCallName" class="form-control" />
-			</div>
-			<div>
-				상영관 유형<select name="newType" class="form-select">
-					<option th:selected="${found.type == '2D'}">2D</option>
-					<option th:selected="${found.type == '4D'}">4D</option>
-					<option th:selected="${found.type == 'IMAX'}">IMAX</option>
-				</select>
-			</div>
-			<div>
-				수용인원<input type="number" th:value="${found.capacity}"
-					name="newCapacity" class="form-control" />
-			</div>
-			<div class="border-bottom my-1"></div>
-			<div>
-				열을 입력하세요.<input type="number"
-					th:value="${found.cinemaMap != null ? found.cinemaMap.line : '' }"
-					name="cinemaMap.newLine" class="form-control" />
-			</div>
-			<div>
-				시트를 입력하세요.<input type="number"
-					th:value="${found.cinemaMap != null ? found.cinemaMap.seat : '' }"
-					name="cinemaMap.newSeat" class="form-control" />
-			</div>
-			<div>
-				<button>변경</button>
-				<button type="button" th:onclick="|location.href='@{/cinema/delete/{id}(id=${found.id})}'|">삭제</button>
-
-
-
-			</div>
-		</form>
+	<div class="container py-3">
+		<div class="border-bottom">
+			<h2>상영관 관리</h2>
+		</div>
+		<div style="min-height: 400px;" class="py-2">
+			<p class="text-secondary">
+				"<b th:text="${found.callName}"></b>" 상영관의 정보를 수정 혹은 삭제 할 수 있습니다.
+			</p>
+			<form th:action="@{/cinema/{id}(id=${found.id})}" method="post" >
+				<input type="hidden" name="_method" value="put" id="method" />
+				<h5 class="text-success">상영관 기본정보 :</h5>
+				<div class="row py-1 align-items-center g-2">
+					<div class="col-1 text-end">이름</div>
+					<div class="col-3">
+						<input type="text" th:value="${found.callName}" name="newCallName"
+							class="form-control form-control-sm" />
+					</div>
+					<div class="col-1 text-end">유형</div>
+					<div class="col-3">
+						<select name="newType" class="form-select form-select-sm">
+							<option th:selected="${found.type == '2D'}">2D</option>
+							<option th:selected="${found.type == '4D'}">4D</option>
+							<option th:selected="${found.type == 'IMAX'}">IMAX</option>
+						</select>
+					</div>
+					<div class="col-1 text-end">공간</div>
+					<div class="col-3">
+						<input type="number" th:value="${found.capacity}" id="capacity"
+							name="newCapacity" class="form-control form-control-sm" />
+					</div>
+				</div>
+				<div class="border-bottom my-1"></div>
+				<h5 class="text-success mb-0">기본 레이아웃 :</h5>
+				<div class="row py-1 align-items-center g-2">
+					<div class="col-6">
+						<div class="row">
+							<div class="col-auto text-end">열 수</div>
+							<div class="col">
+								<input type="number" id="line"
+									th:value="${found.cinemaMap != null ? found.cinemaMap.line : '' }"
+									name="cinemaMap.newLine"
+									class="form-control form-control-sm map" />
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-auto text-end">열당 좌석 수</div>
+							<div class="col">
+								<input type="number" id="seat"
+									th:value="${found.cinemaMap != null ? found.cinemaMap.seat : '' }"
+									name="cinemaMap.newSeat"
+									class="form-control form-control-sm map" />
+							</div>
+						</div>
+					</div>
+					<div class="col-6">
+						<div id="preview"></div>
+						<div class="text-center" style="font-size: small">
+							<span></span> / <span th:text="${found.capacity}"></span>
+						</div>
+					</div>
+				</div>
+				<div>
+					<button class="btn btn-sm btn-success" id="modifyBt">변경</button>
+					<button class="btn btn-sm btn-secondary" id="deleteBt">삭제</button>
+				</div>
+			</form>
+		</div>
 	</div>
+	<script>
+		document.querySelector("#modifyBt").addEventListener("click", function(){
+			document.querySelector("#method").value="put";
+		});
+	
+		document.querySelector("#deleteBt").addEventListener("click", function(){
+			document.querySelector("#method").value="delete";
+		});
+		
+		function makeCinemaMap() {
+			const line = document.querySelector("#line").value;
+			const seat = document.querySelector("#seat").value;
+			if (line && seat) {
+				const $preview = document.querySelector("#preview");
+				$preview.innerHTML = "";
+				console.log(line * seat)
+				for (var i = 1; i <= line; i++) {
+					let div = document.createElement("div");
+					div.className = "d-flex justify-content-center gap-2 py-1";
+					for (var j = 1; j <= seat; j++) {
+						let input = document.createElement("input");
+						input.type = "checkbox";
+						input.checked = true;
+						div.appendChild(input);
+					}
+					$preview.appendChild(div);
+				}
+			}
+		};
 
+		makeCinemaMap();
 
+		document.querySelectorAll(".map").forEach(function(element) {
+			element.addEventListener("input", function() {
+				const line = document.querySelector("#line").value;
+				const seat = document.querySelector("#seat").value;
+				const capacity = document.querySelector("#capacity").value;
 
+				makeCinemaMap();
+			});
+
+		});
+	</script>
 </body>
 </html>
