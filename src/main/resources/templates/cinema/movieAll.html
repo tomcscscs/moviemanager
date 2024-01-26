@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>상영관 등록 :: 영화관관리</title>
+
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+	rel="stylesheet" />
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+@import
+	url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap')
+	;
+
+@import
+	url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap')
+	;
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link th:href="@{/css/style.css}" rel="stylesheet" />
+
+
+</head>
+<body>
+	<div style="margin-left: 100px; margin-right: 100px">
+		<h1
+			style="font-family: 'Black Han Sans', sans-serif; margin-top: 50px;">영화등록
+			양식</h1>
+		<div>
+			<form th:action="@{/movie/new}" method="post" class="row g-2">
+				<ul class="list-group">
+					<li class="list-group-item"><input type="text"
+						name="movieTitle" placeholder="타이틀" /></li>
+					<li class="list-group-item"><input type="date"
+						name="movieReleasedAt" placeholder="개봉날짜" /></li>
+					<li class="list-group-item"><input type="text"
+						name="movieRunningTime" placeholder="상영길이" /></li>
+					<li class="list-group-item"><select name="movieGenreId">
+							<option th:each="one:${genres}" th:value="${one.id}"
+								th:text="${one.name}"></option>
+
+					</select></li>
+					<li class="list-group-item"><input type="text"
+						name="movieAgeCut" placeholder="연령정보" /></li>
+
+				</ul>
+				<button type="submit" style="width: 200px">확인</button>
+			</form>
+
+		</div>
+	</div>
+
+</body>
+</html>
+
