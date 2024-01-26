@@ -52,6 +52,20 @@
 		</div>
 	</div>
 
+
+
+
+
+
+
+	<ul class="list-group" style="width: 200px">
+		<li class="list-group-item" style="margin-top: 50px">영화 전체목록</li>
+
+		<li class="list-group-item list-group-item-primary"
+			th:each="one:${movies}" th:text="${one.title}"></li>
+
+	</ul>
+
 </body>
 </html>
 
