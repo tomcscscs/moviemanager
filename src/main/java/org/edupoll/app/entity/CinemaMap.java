@@ -14,9 +14,9 @@ import lombok.Setter;
 @Setter
 @Getter
 @Builder
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
 @Table(name = "cinema_maps")
 public class CinemaMap {
 

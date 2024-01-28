@@ -12,5 +12,5 @@ public class ModifyCinema {
 	
 	private ModifyCinemaMap cinemaMap;
 	
-		
+	
 }

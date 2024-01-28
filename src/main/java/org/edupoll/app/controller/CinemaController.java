@@ -29,7 +29,7 @@ public class CinemaController {
 	private final CinemaRepository cinemaRepository;
 	private final CinemaMapRepository cinemaMapRepository;
 
-	@GetMapping({"","/all"})
+	@GetMapping({ "", "/all" })
 	public String showAddCinemaForm(Model model) {
 		List<Cinema> list = cinemaRepository.findAll();
 		model.addAttribute("cinemas", list);
@@ -52,8 +52,8 @@ public class CinemaController {
 	@GetMapping("/{id}")
 	public String showCinemaDetail(@PathVariable Integer id, Model model) {
 		Optional<Cinema> optional = cinemaRepository.findById(id);
-		if(optional.isEmpty()) {
-			 return "redirect:/cinema/all";
+		if (optional.isEmpty()) {
+			return "redirect:/cinema/all";
 		}
 		Cinema found = optional.get();
 		// System.out.println(found.getCinemaMap());
@@ -83,35 +83,20 @@ public class CinemaController {
 
 		cinemaRepository.save(cinema);
 
-		return "redirect:/cinema/"+id;
+		return "redirect:/cinema/" + id;
 	}
-	
-	
+
 	@DeleteMapping("/{id}")
 	public String proceedDeleteCinema(@PathVariable Integer id) {
 		Optional<Cinema> optional = cinemaRepository.findById(id);
-		if(optional.isEmpty()) {
-			 return "redirect:/cinema/all";
+		if (optional.isEmpty()) {
+			return "redirect:/cinema/all";
 		}
 		Cinema cinema = optional.get();
 		cinemaRepository.delete(cinema);
-		if(cinema.getCinemaMap() != null) {
+		if (cinema.getCinemaMap() != null) {
 			cinemaMapRepository.delete(cinema.getCinemaMap());
 		}
 		return "redirect:/cinema/all";
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -18,13 +18,13 @@ import lombok.Setter;
 
 @Setter
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 @Table(name="schedules")
 public class Schedule {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -35,18 +35,17 @@ public class Schedule {
 	@ManyToOne
 	private Movie movie;
 	
-	private LocalDateTime showtime;
+	private LocalDate showDate;
+	private LocalDateTime showTime;
+	private LocalDateTime endTime;
 	
 	private Integer reservedCnt;
+
 	
 	@PrePersist
 	public void prePersist() {
-		//최초 세이브가 될때. 디폴트 벨류드를 설정해줄 수 있습니다. 
-		
-		this.reservedCnt=0;
-		
+		this.reservedCnt = 0;
 	}
-	
-	
-
 }
+
+

@@ -2,6 +2,8 @@ insert into genres(name)
 values 	('액션'), ('모험'), ('애니메이션'),('코미디'), ('범죄'),
  		('다큐멘터리'), ('드라마'), ('가족'), ('판타지'), ('역사'), 
  		('SF') , ('공포'), ('로맨스');
+ 		
+ INSERT INTO cinemas (id, call_name, type, capacity) VALUES (4, '상무지구', '4d', 45),(5,'충장점', '2d',32),(6,'첨단점','4d',65),(7,'운암점','2d',55),(8,'경운점','2d',23);
 
 
 insert into movies(id,title, released_at, running_time, genre_id, age_cut)

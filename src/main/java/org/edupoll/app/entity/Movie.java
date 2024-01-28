@@ -37,6 +37,4 @@ public class Movie {
 	private Genre genre;
 	
 	private Integer ageCut;
-	
-	
 }
