@@ -37,7 +37,7 @@ public class Schedule {
 	
 	private LocalDate showDate;
 	private LocalDateTime showTime;
-	private LocalDateTime endTime;
+	private LocalDateTime closedTime;
 	
 	private Integer reservedCnt;
 

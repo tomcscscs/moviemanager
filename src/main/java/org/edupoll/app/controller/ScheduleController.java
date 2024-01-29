@@ -2,72 +2,133 @@ package org.edupoll.app.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-import org.edupoll.app.entity.Genre;
+import org.edupoll.app.command.AddSchedule;
+import org.edupoll.app.entity.Cinema;
+import org.edupoll.app.entity.Movie;
+import org.edupoll.app.entity.Schedule;
 import org.edupoll.app.repository.CinemaRepository;
 import org.edupoll.app.repository.MovieRepository;
+import org.edupoll.app.repository.ScheduleRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/schedule")
 @RequiredArgsConstructor
-
+@RequestMapping("/schedule")
 public class ScheduleController {
-	
+	private final ScheduleRepository scheduleRepository;
 	private final MovieRepository movieRepository;
 	private final CinemaRepository cinemaRepository;
-	
-	
 
-	@GetMapping("/all")
-	public String showScheduleAllPage(Model model) {
-		List<LocalDate> periods = new ArrayList<>();
+	@GetMapping({ "/", "/all" })
+	public String showSchedules(Model model) {
 
-		LocalDate start = LocalDate.now();
+		List<Schedule> schedules = scheduleRepository.findAll(Sort.by("showDate").ascending());
+		model.addAttribute("schedules", schedules);
+		return "schedule/schedule-all";
+	}
 
-		for (int i = 0; i <= 6; i++) {
-			periods.add(start.plusDays(i));
+	@GetMapping("/new")
+	public String showAddSchedule(@RequestParam(required = false) Integer errorCode, Model model) {
+		model.addAttribute("today", LocalDate.now().plusDays(1));
+		model.addAttribute("movies", movieRepository.findAll());
+		model.addAttribute("cinemas", cinemaRepository.findAll());
+		model.addAttribute("errorCode", errorCode);
+		return "schedule/schedule-new";
+	}
+
+	@PostMapping("/new")
+	public String proceedAddSchedule(AddSchedule cmd) {
+		Movie targetMovie = movieRepository.findById(cmd.getMovieId()).get();
+		Cinema targetCinema = cinemaRepository.findById(cmd.getCinemaId()).get();
+		LocalDate targetDate = LocalDate.parse(cmd.getShowDate());
+
+		if (!targetDate.isAfter(LocalDate.now())) {
+			return "redirect:/schedule/new?errorCode=1";
 		}
 
-		model.addAttribute("periods", periods);
+		List<Schedule> registeredSchedules = scheduleRepository.findByCinemaAndShowDate(targetCinema, targetDate);
+		// 등록하고자하는 시간대가 전부 가능한지 체크
+		boolean creatable = true;
+		flag : for (String time : cmd.getShowTime()) {
+			if (time == null || time.equals(""))
+				continue;
+			
+			LocalDateTime showTime = LocalDateTime.parse(cmd.getShowDate() + "T" + time);
+			LocalDateTime closeTime = showTime.plusMinutes(targetMovie.getRunningTime());
 
-		return "schedule/all";
+			for (Schedule one : registeredSchedules) {
+				LocalDateTime fixedShowTime = one.getShowTime();
+				LocalDateTime fixedClosedTime = one.getClosedTime();
+				if (!(closeTime.isBefore(fixedShowTime) || showTime.isAfter(fixedClosedTime))) {
+					creatable = false;
+					break flag;
+				}
+			}
+		}
+		if(!creatable) {
+			return "redirect:/schedule/new?errorCode=2";
+		}
+		
+		// =========================================================================
+		for (String time : cmd.getShowTime()) {
+			if (time == null || time.equals(""))
+				continue;
 
+			LocalDateTime showTime = LocalDateTime.parse(cmd.getShowDate() + "T" + time);
+			Schedule entity = Schedule.builder().//
+					cinema(targetCinema). //
+					movie(targetMovie). //
+					showDate(targetDate).//
+					showTime(showTime).//
+					closedTime(showTime.plusMinutes(targetMovie.getRunningTime())). //
+					reservedCnt(0). //
+					build();
+			scheduleRepository.save(entity);
+		}
+
+		return "redirect:/schedule/new";
 	}
 
-	@GetMapping("/register")
-	public String showScheduleInputForRegister(Model model) {
+	// AJAX 용
+	@GetMapping("/api/cinema")
+	@ResponseBody
+	public List<Schedule> sendCinemaDetail(@RequestParam Integer cinemaId, @RequestParam String showDate) {
+		Cinema targetCinema = cinemaRepository.findById(cinemaId).get();
+		LocalDate targetDate = LocalDate.parse(showDate);
+		List<Schedule> registeredSchedules = scheduleRepository.findByCinemaAndShowDate(targetCinema, targetDate);
 		
-		model.addAttribute("movies", movieRepository.findAll());
-		
-		 LocalDate startDate = LocalDate.of(1950, 1, 1);
-		    LocalDate endDate = LocalDate.now();
-		    
-		    List<LocalDate> dateList = new ArrayList<>();
-		    LocalDate currentDate = startDate;
-
-		    while (!currentDate.isAfter(endDate)) {
-		        dateList.add(currentDate);
-		        currentDate = currentDate.plusDays(1);
-		    }
-
-		    model.addAttribute("dateList", dateList);
-		    
-		    model.addAttribute("cinemas",cinemaRepository.findAll());
-
-		    
-		
-
-		return "schedule/register";
-
+		return registeredSchedules;
 	}
 
+	// AJAX 용
+	@GetMapping("/api/movie")
+	@ResponseBody
+	public Movie sendMovieDetail(@RequestParam String movieId) {
+		return movieRepository.findById(movieId).get();
+	}
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

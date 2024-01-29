@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>상영관 등록 :: 영화관관리</title>
+
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+	rel="stylesheet" />
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link th:href="@{/css/style.css}" rel="stylesheet" />
+
+</head>
+<body>
+	<div class="container py-3">
+		<ul class="nav justify-content-start nav-underline mb-2">
+			<li class="nav-item py-1"><a class="nav-link active"
+				aria-current="page" th:href="@{/movie/all}">영화 관리</a></li>
+			<li class="nav-item py-1"><a class="nav-link"
+				th:href="@{/cinema/all}">상영관 관리</a></li>
+			<li class="nav-item py-1"><a class="nav-link" href="#">Link</a></li>
+		</ul>
+		<div class="border-bottom">
+			<h2>영화 관리</h2>
+		</div>
+		<div class="py-2 border-bottom">
+			<h5 class="text-success">새 영화 추가</h5>
+			<form th:action="@{/movie/new}" method="post" autocomplete="off">
+				<div class="row g-2">
+					<div class="col-3">
+						<input type="text" class="form-control form-control-sm"
+							name="movieTitle" placeholder="영화 제목" />
+					</div>
+					<div class="col-2">
+						<select class="form-select form-select-sm" name="movieGenreId">
+							<option selected disabled>영화 장르</option>
+							<option th:each="one : ${genres}" th:value="${one.id}"
+								th:text="${one.name} "></option>
+						</select>
+					</div>
+					<div class="col-3">
+						<input type="date" class="form-control form-control-sm"
+							name="movieReleasedAt" placeholder="개봉일자" />
+					</div>
+					<div class="col-2">
+						<input type="number" class="form-control form-control-sm"
+							name="movieRunningTime" placeholder="소요시간" />
+					</div>
+					<div class="col-1">
+						<input type="number" class="form-control form-control-sm"
+							name="movieAgeCut" placeholder="연령제한" />
+					</div>
+
+					<div class="col-1">
+						<button type="submit" class="btn btn-sm btn-success form-control ">
+							<i class="bi bi-database-add"></i>
+						</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="py-2">
+			<!-- 장르별 네비게이션 바 -->
+			<div class="py-1">
+				<form th:action="@{/movie/all}" id="genreCtrl">
+					<th:block th:each="one : ${genres}">
+						<input type="radio" class="btn-check genre" name="genreId" 
+							th:id="${one.id}" autocomplete="off" th:value="${one.id}" 
+							th:checked="${currentGenreId == one.id}">
+						<label class="btn btn-sm btn-light px-1 py-0" th:for="${one.id}"
+							th:text="${one.name}"></label>
+					</th:block>
+				</form>
+			</div>
+			<div th:if="${#lists.isEmpty(movies)}">
+				<p>※ 관리 중인 영화가 없습니다.</p>
+			</div>
+			<div>
+				<div class="row g-2 py-1" th:each="one : ${movies}"
+					th:unless="${#lists.isEmpty(movies)}">
+
+					<div class="col-3">
+						<input type="text" class="form-control form-control-sm"
+							th:value="${one.title}" disabled />
+					</div>
+					<div class="col-2">
+						<select class="form-select form-select-sm" disabled>
+							<option selected th:text="${one.genre.name}">영화 장르</option>
+						</select>
+					</div>
+					<div class="col-3">
+						<input type="date" class="form-control form-control-sm" disabled
+							th:value="${#temporals.format(one.releasedAt, 'yyyy-MM-dd')}" />
+					</div>
+					<div class="col-2">
+						<input type="text" class="form-control form-control-sm" disabled
+							th:value="|${one.runningTime} 분|" />
+					</div>
+					<div class="col-1">
+						<input type="text" class="form-control form-control-sm"
+							th:value="${one.ageCut ?: 'ALL'}" disabled />
+					</div>
+
+					<div class="col-1">
+						<button type="button"
+							class="btn btn-sm btn-secondary form-control ">
+							<i class="bi bi-database-gear"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		document.querySelectorAll(".genre").forEach(function(elm){
+			elm.addEventListener("change", function(evt){
+				document.querySelector("#genreCtrl").submit();
+			});
+		});
+	</script>
+</body>
+</html>

@@ -1,7 +1,6 @@
 package org.edupoll.app.command;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Data;
 
@@ -11,6 +10,6 @@ public class AddSchedule {
 	private Integer cinemaId;
 	private String movieId;
 	private String showDate;
-	private String showTime;
+	private List<String> showTime;
 	
 }

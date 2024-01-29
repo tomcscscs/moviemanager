@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>스케쥴 등록 :: 영화관관리</title>
+
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+	rel="stylesheet" />
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link th:href="@{/css/style.css}" rel="stylesheet" />
+</head>
+<body>
+	<div class="container py-3">
+		<ul class="nav justify-content-start nav-underline mb-2">
+			<li class="nav-item py-1"><a class="nav-link active"
+				aria-current="page" th:href="@{/movie/all}">영화 관리</a></li>
+			<li class="nav-item py-1"><a class="nav-link"
+				th:href="@{/cinema/all}">상영관 관리</a></li>
+			<li class="nav-item py-1"><a class="nav-link" href="#">Link</a></li>
+		</ul>
+		<div class="border-bottom">
+			<h2>상영시간 관리</h2>
+		</div>
+		<div class="py-2">
+			<h5 class="text-success">스케쥴 추가</h5>
+			<form th:action="@{/schedule/new}" method="post">
+				<div class="row g-2 pb-1">
+					<div class="col-4">
+						<select id="movie" name="movieId"
+							class="form-select form-select-sm">
+							<option selected disabled>영화 선택</option>
+							<th:block th:each="movie : ${movies}" th:object="${movie}">
+								<option th:value="*{id}" th:text="|*{title} (*{runningTime} 분)|">..</option>
+							</th:block>
+						</select>
+					</div>
+					<div class="col-4">
+						<select id="cinema" name="cinemaId"
+							class="form-select form-select-sm cinedate">
+							<option selected disabled>상영관 선택</option>
+
+							<option th:each="cinema : ${cinemas}" th:value="${cinema.id}"
+								th:text="${cinema.callName} + '-' + ${cinema.capacity} + '인석'">..</option>
+
+						</select>
+					</div>
+					<div class="col-4 px-1">
+						<input type="date" class="form-control form-control-sm cinedate"
+							id="showDate" name="showDate" th:min="${today}" />
+					</div>
+				</div>
+				<div th:if="${errorCode == 1}"
+					class="alert alert-danger px-2 py-1 mb-1" style="font-size: small">
+					상영시간 등록은 금일 이후 (<span th:text="${today}"></span>) 부터 가능합니다.
+				</div>
+				<div class="card mb-1">
+					<div class="card-header p-2" id="moviePreview"
+						style="font-size: small;">영화를 선택하세요.</div>
+					<ul class="list-group list-group-flush" id="schedulePreview">
+					</ul>
+				</div>
+				<div class="row g-2 pb-1">
+					<div class="col-3 px-1">
+						<input type="time" class="form-control form-control-sm"
+							name="showTime" />
+					</div>
+					<div class="col-3 px-1">
+						<input type="time" class="form-control form-control-sm"
+							name="showTime" />
+					</div>
+					<div class="col-3 px-1">
+						<input type="time" class="form-control form-control-sm"
+							name="showTime" />
+					</div>
+					<div class="col-3 px-1">
+						<input type="time" class="form-control form-control-sm"
+							name="showTime" />
+					</div>
+					<div class="col-3 px-1">
+						<input type="time" class="form-control form-control-sm"
+							name="showTime" />
+					</div>
+					<div class="col-3 px-1">
+						<input type="time" class="form-control form-control-sm"
+							name="showTime" />
+					</div>
+				</div>
+				<div class="d-flex g-2 justify-content-end pt-1 border-top">
+
+					<button type="submit" class="btn btn-sm btn-secondary">스케쥴
+						등록</button>
+
+				</div>
+			</form>
+		</div>
+	</div>
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+	<script>
+	/*
+	$(".cinedate").on("change", function(e) {
+			const cinemaId = $("#cinema").val();
+			const showDate = $("#showDate").val();
+			if(cinemaId && showDate) {
+				window.alert(cinemaId+","+showDate);
+			}
+		
+	});
+	*/
+	
+
+	
+	
+	[...document.querySelectorAll(".cinedate")].forEach(function(elem){
+		elem.addEventListener("change", function(e) {
+			const $view = document.querySelector("#schedulePreview");
+			$view.innerHTML = "";
+			const cinemaId = document.querySelector("#cinema").value;
+			const showDate = document.querySelector("#showDate").value;
+			if(cinemaId && showDate) {
+				fetch("/schedule/api/cinema?cinemaId="+cinemaId+"&showDate="+showDate , {
+					method : "get"
+				}).then(function(response){
+					return response.json();
+				}).then(function(obj) {
+					console.log(obj.length);
+					for(one of obj) {
+						const  title = one.movie.title;
+						const hour = one.showTime.split("T")[1].substr(0, 5);
+						const li = document.createElement("li");
+						li.className ="list-group-item";
+						li.textContent = hour + " | " + title;
+						$view.appendChild(li);
+					}
+				});
+			}
+		});
+	});
+
+	
+	
+	
+	
+	document.querySelector("#movie").addEventListener("change", function(e) {
+		const movieId = e.target.value;
+		const xhr = new XMLHttpRequest();
+		xhr.open("get", "/schedule/api/movie?movieId="+movieId, true);
+		xhr.onreadystatechange = function(e) {
+			if(xhr.readyState == 4) {
+				const obj = JSON.parse(xhr.responseText);
+				var html =  obj.title+" / "+obj.genre.name+" / ";
+				html +=  obj.ageCut == null ? '전체 관람가':obj.ageCut+'세 관람가';
+				html += ' / ' + obj.runningTime +"분";
+				document.querySelector("#moviePreview").innerHTML = html;
+			}
+		}
+		xhr.send();
+	});
+	
+	/*
+		$("#movie").on("change", function(e) {
+			const movieId = e.target.value;
+			$.ajax({
+				url : "/schedule/api/movie?movieId="+movieId,
+				method: "get",
+				dataType : "json"		
+			}).done(function(obj) {
+				console.log(obj);
+				var html =  obj.title+" / "+obj.genre.name+" / ";
+				html +=  obj.ageCut == null ? '전체 관람가':obj.ageCut+'세 관람가';
+				html += ' / ' + obj.runningTime +"분";
+				$("#moviePreview").html(html);
+			});
+		})
+	*/
+	</script>
+</body>
+</html>

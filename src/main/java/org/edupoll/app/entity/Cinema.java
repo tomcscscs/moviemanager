@@ -33,6 +33,6 @@ public class Cinema {
 	
 	
 	@OneToOne
-	CinemaMap cinemaMap;
+	private CinemaMap cinemaMap;
 
 }
