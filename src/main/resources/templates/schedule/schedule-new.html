@@ -14,11 +14,12 @@
 <body>
 	<div class="container py-3">
 		<ul class="nav justify-content-start nav-underline mb-2">
-			<li class="nav-item py-1"><a class="nav-link active"
+			<li class="nav-item py-1"><a class="nav-link "
 				aria-current="page" th:href="@{/movie/all}">영화 관리</a></li>
 			<li class="nav-item py-1"><a class="nav-link"
 				th:href="@{/cinema/all}">상영관 관리</a></li>
-			<li class="nav-item py-1"><a class="nav-link" href="#">Link</a></li>
+			<li class="nav-item py-1"><a class="nav-link active"
+				th:href="@{/schedule/all}">스케쥴 관리</a></li>
 		</ul>
 		<div class="border-bottom">
 			<h2>상영시간 관리</h2>
@@ -125,8 +126,8 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-light" data-bs-dismiss="modal">취소</button>
-					<button type="button" class="btn btn-secondary" id="settingBt" 
-							data-bs-dismiss="modal">적용</button>
+					<button type="button" class="btn btn-secondary" id="settingBt"
+						data-bs-dismiss="modal">적용</button>
 				</div>
 			</div>
 		</div>
@@ -142,41 +143,105 @@
 	<script>
 	
 	document.querySelector("#settingBt").addEventListener("click", function(e) {
-	    const startTime = document.querySelector("#settingStartTime").value;
-	    const gap = document.querySelector("#settingGap").value;
-	    const arr = startTime.split(":");
-	    const times = [];
-	    for (let standard = arr[0] * 60 + arr[1] * 1; standard < 1440; standard += gap * 1) {
-	        times.push(standard);
-	    }
-	    const timeTable = times.map(function(val) {
-	        return Math.floor(val / 60) + ":" + (val % 60 < 10 ? '0' + val % 60 : val % 60);
-	    });
+		const startTime = document.querySelector("#settingStartTime").value;
+		const gap = document.querySelector("#settingGap").value;
+		const arr = startTime.split(":");
+		const times = [];
+		for(let standard = arr[0]*60 + arr[1]*1; standard < 1440; standard += gap*1 ) {
+			times.push(standard);
+		}
+		const timeTable = times.map(function(val) {
+			return Math.floor(val / 60) +":" + (val%60 <10 ? '0' + val%60 : val%60);
+		});
+		
+		const divs = timeTable.map(val => {
+			const div = document.createElement("div");
+			div.className="col-3 px-1 ";
+			const input = document.createElement("input");
+				input.type="time";
+				input.className="form-control form-control-sm";
+				input.name="showTime";
+				input.value=val;
+			
+			div.appendChild(input);
+			
+			return div;
+		});
+		const schedulePlan = document.querySelector("#schedulePlan");
+		schedulePlan.innerHTML = "";
+		divs.forEach(function(val) {
+			schedulePlan.appendChild(val);
+		});
+	});
+	
+	
+	
+	/*
+	$(".cinedate").on("change", function(e) {
+			const cinemaId = $("#cinema").val();
+			const showDate = $("#showDate").val();
+			if(cinemaId && showDate) {
+				window.alert(cinemaId+","+showDate);
+			}
+		
+	});
+	*/
+	
 
-	    const divs = timeTable.map(function(val) {
-	        const div = document.createElement("div");
-	        div.className = "col-3 px-1 input-group";
-	        const input = document.createElement("input");
-	        input.type = "time";
-	        input.className = "form-control form-control-sm";
-	        input.name = "showTime";
-	        input.value = val;
+	
+	
+	[...document.querySelectorAll(".cinedate")].forEach(function(elem){
+		elem.addEventListener("change", function(e) {
+			const $view = document.querySelector("#schedulePreview");
+			$view.innerHTML = "";
+			const cinemaId = document.querySelector("#cinema").value;
+			console.log(document.querySelector("#cinema"));
+			const cinemaCallName = document.querySelector("#cinema").options[document.querySelector("#cinema").selectedIndex].text;
+			const showDate = document.querySelector("#showDate").value;
+			if(cinemaId && showDate) {
+				fetch("/schedule/api/cinema?cinemaId="+cinemaId+"&showDate="+showDate , {
+					method : "get"
+				}).then(function(response){
+					return response.json();
+				}).then(function(obj) {
+					document.querySelector("#moviePreview").textContent = "["+cinemaCallName+"]의 [" + showDate+"] 예정 스케쥴표";
+					if(obj.length == 0) {
+						const li = document.createElement("li");
+						li.className ="list-group-item";
+						li.textContent = "등록된 상영 스케쥴이 없습니다.";
+						$view.appendChild(li);
+					}
+					for(one of obj) {
+						const  title = one.movie.title;
+						const hour = one.showTime.split("T")[1].substr(0, 5);
+						const li = document.createElement("li");
+						li.className ="list-group-item";
+						li.textContent = hour + " | " + title;
+						$view.appendChild(li);
+					}
+				});
+			}
+		});
+	});
 
-	        // 추가: button 엘리먼트 정의 및 설정
-	        const button = document.createElement("button");
-	        button.type = "button";
-	        button.className = "btn btn-light";
-	        button.textContent = "Button Text";
-
-	        div.appendChild(input);
-	        div.appendChild(button);
-	        return div;
-	    });
-	    const schedulePlan = document.querySelector("#schedulePlan");
-	    schedulePlan.innerHTML = "";
-	    divs.forEach(function(val) {
-	        schedulePlan.appendChild(val);
-	    });
+	
+	
+	
+	
+	document.querySelector("#movie").addEventListener("change", function(e) {
+		const movieId = e.target.value;
+		const xhr = new XMLHttpRequest();
+		xhr.open("get", "/schedule/api/movie?movieId="+movieId, true);
+		xhr.onreadystatechange = function(e) {
+			if(xhr.readyState == 4) {
+				const obj = JSON.parse(xhr.responseText);
+				var html =  obj.title+" / "+obj.genre.name+" / ";
+				html +=  obj.ageCut == null ? '전체 관람가':obj.ageCut+'세 관람가';
+				html += ' / ' + obj.runningTime +"분";
+				document.querySelector("#settingPreview").innerHTML = html;
+			}
+		}
+		xhr.send();
 	});
 	
 	/*

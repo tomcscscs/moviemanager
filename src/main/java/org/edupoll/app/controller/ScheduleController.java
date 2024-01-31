@@ -2,15 +2,18 @@ package org.edupoll.app.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.edupoll.app.command.AddSchedule;
+import org.edupoll.app.data.MovieSchedule;
 import org.edupoll.app.entity.Cinema;
 import org.edupoll.app.entity.Movie;
 import org.edupoll.app.entity.Schedule;
 import org.edupoll.app.repository.CinemaRepository;
 import org.edupoll.app.repository.MovieRepository;
 import org.edupoll.app.repository.ScheduleRepository;
+import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,10 +34,59 @@ public class ScheduleController {
 	private final CinemaRepository cinemaRepository;
 
 	@GetMapping({ "/", "/all" })
-	public String showSchedules(Model model) {
+	public String showSchedules(@RequestParam(required = false) LocalDate targetDate, Model model) {
+		LocalDate today = LocalDate.now();
 
-		List<Schedule> schedules = scheduleRepository.findAll(Sort.by("showDate").ascending());
-		model.addAttribute("schedules", schedules);
+		List<LocalDate> period = new ArrayList<>();
+		for (int gap = 0; gap < 7; gap++) {
+			period.add(today.plusDays(gap));
+		}
+		model.addAttribute("period", period);
+
+		if (targetDate == null) {
+			targetDate = LocalDate.now();
+		}
+		model.addAttribute("targetDate", targetDate);
+		
+		
+		Schedule sample = Schedule.builder().showDate(targetDate).build();
+
+		
+		List<Schedule> schedules = scheduleRepository.findAll(Example.of(sample), Sort.by("showDate").ascending());
+		//스케줄에서 이 조건으로 하나 찾고.
+		
+		/*
+		 * List<Movie> movies = new ArrayList<>(); for(Schedule s : schedules) {
+		 * if(!movies.contains(s.getMovie())) { movies.add(s.getMovie()); } }
+		 */
+		List<Movie> movies = schedules.stream().map(t -> t.getMovie()).distinct().toList();
+		
+		
+		List<MovieSchedule> movieSchedules = movies.stream().//
+				map(t -> MovieSchedule.builder().movie(t)
+						.schedules(schedules.stream().filter(e -> e.getMovie().equals(t)).toList()).build())
+				.toList();
+
+		/*
+		 * schedules.stream().map(t -> t.getMovie()).distinct().map(t ->
+		 * MovieSchedule.builder().movie(t) .schedules(schedules.stream().filter(e ->
+		 * e.getMovie().equals(t)).toList()).build()).toList();
+		 */
+
+//		List<MovieSchedule> movieSchedules = new ArrayList<>();
+//		for (Movie one : movies) {
+//			List<Schedule> selected = new ArrayList<>();
+//			for (Schedule t : schedules) {
+//				if (t.getMovie().equals(one)) {
+//					selected.add(t);
+//				}
+//			}
+//			MovieSchedule done = //
+//					MovieSchedule.builder().movie(one).schedules(selected).build();
+//			movieSchedules.add(done);
+//		}
+
+		model.addAttribute("schedules", movieSchedules);
 		return "schedule/schedule-all";
 	}
 
@@ -60,10 +112,10 @@ public class ScheduleController {
 		List<Schedule> registeredSchedules = scheduleRepository.findByCinemaAndShowDate(targetCinema, targetDate);
 		// 등록하고자하는 시간대가 전부 가능한지 체크
 		boolean creatable = true;
-		flag : for (String time : cmd.getShowTime()) {
+		flag: for (String time : cmd.getShowTime()) {
 			if (time == null || time.equals(""))
 				continue;
-			
+
 			LocalDateTime showTime = LocalDateTime.parse(cmd.getShowDate() + "T" + time);
 			LocalDateTime closeTime = showTime.plusMinutes(targetMovie.getRunningTime());
 
@@ -76,10 +128,10 @@ public class ScheduleController {
 				}
 			}
 		}
-		if(!creatable) {
+		if (!creatable) {
 			return "redirect:/schedule/new?errorCode=2";
 		}
-		
+
 		// =========================================================================
 		for (String time : cmd.getShowTime()) {
 			if (time == null || time.equals(""))
@@ -107,7 +159,7 @@ public class ScheduleController {
 		Cinema targetCinema = cinemaRepository.findById(cinemaId).get();
 		LocalDate targetDate = LocalDate.parse(showDate);
 		List<Schedule> registeredSchedules = scheduleRepository.findByCinemaAndShowDate(targetCinema, targetDate);
-		
+
 		return registeredSchedules;
 	}
 
@@ -117,18 +169,5 @@ public class ScheduleController {
 	public Movie sendMovieDetail(@RequestParam String movieId) {
 		return movieRepository.findById(movieId).get();
 	}
-	
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
